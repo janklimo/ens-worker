@@ -1,15 +1,23 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run "npm run dev" in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run "npm run deploy" to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import { AlchemyProvider } from 'ethers';
 
 export default {
-  async fetch(request, env, ctx) {
-    return new Response('Hello World!');
-  },
+	async fetch(request, env) {
+		const provider = new AlchemyProvider('mainnet', env.API_TOKEN);
+
+		const url = new URL(request.url);
+		const address = url.searchParams.get('address');
+
+		try {
+			const name = await provider.lookupAddress(address);
+			const response = { ensName: name };
+			return new Response(JSON.stringify(response), {
+				headers: { 'Content-Type': 'application/json' },
+			});
+		} catch (error) {
+			const response = { ensName: null };
+			return new Response(JSON.stringify(response), {
+				headers: { 'Content-Type': 'application/json' },
+			});
+		}
+	},
 };
